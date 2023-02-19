@@ -1,6 +1,5 @@
 package com.booknu.reactor.ch3;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.Duration;
@@ -84,11 +83,30 @@ public class StepVerifierPractice {
     // 처리에 매우 오래 걸리는 flux
     Supplier<Flux<Long>> fluxSupplier = () ->
       Flux.interval(Duration.ofSeconds(1))
-        .take(3600);
+        .take(3600)
+        .map(x -> x * 2);
 
     StepVerifier.withVirtualTime(fluxSupplier)
       .thenAwait(Duration.ofSeconds(3600))
       .expectNextCount(3600)
-      .verifyComplete();
+      .expectComplete()
+      .log()
+      .verify();
+  }
+
+  @Test
+  void expect3600Elements2() {
+    // 처리에 매우 오래 걸리는 flux
+    var flux = Flux.interval(Duration.ofSeconds(1))
+        .take(3600);
+
+    Duration execTime = StepVerifier.withVirtualTime(() -> flux, 3600)
+      .thenAwait(Duration.ofSeconds(3600))
+      .expectNextCount(3600)
+      .expectComplete()
+      .log()
+      .verify();
+
+    System.out.println(execTime);
   }
 }
